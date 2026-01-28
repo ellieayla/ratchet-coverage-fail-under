@@ -1,22 +1,23 @@
-import argparse
-import pyexpat
 import pytest
-import ratchet_coverage
+from unittest import mock
+
+import argparse
 from pathlib import Path
 import textwrap
-import coverage
 import subprocess
 import sys
-from unittest import mock
+
+import coverage
+
+from ratchet_coverage import ratchet
 
 
 @pytest.fixture
 def coverage_database_80_percent(tmp_path):
     """Generate a real .coverage run database with 80% coverage"""
     data_file = Path(tmp_path) / Path(".coverage")
-    d = coverage.CoverageData(basename=data_file)
-
     python_file = Path(tmp_path) / Path("example.py")
+
     with open(python_file, 'w', encoding='utf-8') as f:
         f.write(textwrap.dedent(
             """
@@ -99,7 +100,7 @@ def test_rewrite_pyproject_toml_file(tmp_path) -> None:
     original_config_file = toml_config_file.with_suffix(".backup.toml")
     toml_config_file.copy(original_config_file)
 
-    ratchet_coverage.update_pyproject_toml(
+    ratchet.update_pyproject_toml(
         config_file=toml_config_file,
         expected_config_value=51.0,
         acceptable_coverage=80.20,
@@ -144,7 +145,7 @@ def test_fail_to_rewrite_ini_config_file(tmp_path) -> None:
     assert cov.config.fail_under == 90.0
 
     with pytest.raises(ValueError):
-        ratchet_coverage.update_pyproject_toml(
+        ratchet.update_pyproject_toml(
             config_file=ini_config_file,
             expected_config_value=90.0,
             acceptable_coverage=95.0,
@@ -163,7 +164,7 @@ def test_error_on_low_fail_under(tmp_path, coverage_database_80_percent, capsys)
             write=False,
             )
     ):
-        result = ratchet_coverage.main()
+        result = ratchet.main()
 
     captured = capsys.readouterr()
 
@@ -183,7 +184,7 @@ def test_warning_on_close_fail_under(tmp_path, coverage_database_80_percent, cap
             write=False,
         )
     ):
-        result = ratchet_coverage.main()
+        result = ratchet.main()
 
     captured = capsys.readouterr()
 
@@ -206,7 +207,7 @@ def test_ratcheted_config_file(tmp_path, coverage_database_80_percent, capsys) -
             write=True
         )
     ):
-        result = ratchet_coverage.main()
+        result = ratchet.main()
 
     captured = capsys.readouterr()
 
@@ -234,7 +235,7 @@ def test_ratcheted_config_file(tmp_path, coverage_database_80_percent, capsys) -
 @pytest.mark.parametrize("percent_string", ["1", "1.5", "0", "0.0", "100.0", "5%", "5.5%", "12.34567%"])
 def test_argparse_percentage_successful(percent_string):
     p = argparse.ArgumentParser()
-    p.add_argument("--percent", required=True, type=ratchet_coverage.percentage)
+    p.add_argument("--percent", required=True, type=ratchet.percentage)
 
     a = p.parse_args(["--percent", percent_string])
 
@@ -245,9 +246,9 @@ def test_argparse_percentage_successful(percent_string):
 @pytest.mark.parametrize("percent_string", ["-1", "-1.5%", "200%", "100.0001"])
 def test_argparse_percentage_errors(percent_string, capsys):
     p = argparse.ArgumentParser()
-    p.add_argument("--percent", required=True, type=ratchet_coverage.percentage)
+    p.add_argument("--percent", required=True, type=ratchet.percentage)
 
-    with pytest.raises(SystemExit) as e:
+    with pytest.raises(SystemExit):
         _ = p.parse_args(["--percent", percent_string])
 
     captured = capsys.readouterr()
@@ -266,7 +267,7 @@ def test_100_percent_coverage_recommend_removing_hook(tmp_path, coverage_databas
             write=False
         )
     ):
-        result = ratchet_coverage.main()
+        result = ratchet.main()
 
     assert result == 0
     captured = capsys.readouterr()
@@ -278,5 +279,5 @@ def test_unexpected_fail_under_configuration(tmp_path, capsys):
     toml_config_file = make_toml_config_file(tmp_path=tmp_path, fail_under=99.0)
 
     with pytest.raises(ValueError) as e:
-        ratchet_coverage.update_pyproject_toml(toml_config_file, expected_config_value=1, acceptable_coverage=2)
+        ratchet.update_pyproject_toml(toml_config_file, expected_config_value=1, acceptable_coverage=2)
     assert 'fail_under changed during run' in str(e)

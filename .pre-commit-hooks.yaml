@@ -1,6 +1,9 @@
 - id: ratchet-coverage
-  language: python
   name: rachet fail_under coverage requirement
-  entry: ratchet_coverage.py
+  entry: ratchet-coverage
+  language: python
   pass_filenames: false
-  stages: [manual]
+  always_run: true
+  require_serial: true
+  files: "pyproject.toml"
+  stages: [manual, pre-commit]

@@ -6,16 +6,17 @@ Read a coverage.py output database (.coverage) as produced by either coverage.py
 and
 """
 
-from typing import reveal_type, TypedDict, cast
-from coverage import CoverageData, Coverage
-from argparse import ArgumentParser, ArgumentError
+from typing import TypedDict, cast
+from coverage import Coverage
+from argparse import ArgumentParser
 from os import getenv
 from pathlib import Path
 
 
 def update_pyproject_toml(config_file: Path, expected_config_value: float, acceptable_coverage: float) -> None:
     try:
-        import tomlkit, tomlkit.toml_file
+        import tomlkit
+        import tomlkit.toml_file
     except ImportError:
         raise RuntimeError("To automatically update pyproject.toml, install tomlkit. See https://tomlkit.readthedocs.io/")
 
@@ -76,5 +77,5 @@ def main() -> int:
     return 1
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     raise SystemExit(main())

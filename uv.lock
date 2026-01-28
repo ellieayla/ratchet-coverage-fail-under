@@ -182,31 +182,33 @@ wheels = [
 ]
 
 [[package]]
-name = "pytest-cov-ratchet"
+name = "ratchet-coverage"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "coverage" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
     { name = "tomlkit" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "coverage", specifier = ">=7.13.2" },
-    { name = "pytest", specifier = ">=9.0.2" },
-    { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "tomlkit", specifier = ">=0.14.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "mypy", specifier = ">=1.19.1" }]
+dev = [
+    { name = "mypy", specifier = ">=1.19.1" },
+    { name = "pytest", specifier = ">=9.0.2" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+]
 
 [[package]]
 name = "tomlkit"

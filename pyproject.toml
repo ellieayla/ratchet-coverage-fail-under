@@ -1,21 +1,23 @@
 [project]
-name = "pytest-cov-ratchet"
+name = "ratchet_coverage"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = [
     "coverage>=7.13.2",
-    "pytest>=9.0.2",
-    "pytest-cov>=7.0.0",
     "tomlkit>=0.14.0",
 ]
+
+[project.scripts]
+ratchet-coverage = "ratchet_coverage.ratchet:main"
 
 [dependency-groups]
 dev = [
     "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]
-
 
 [tool.pytest.ini_options]
 addopts = "--cov"
@@ -24,6 +26,6 @@ addopts = "--cov"
 branch = true
 
 [tool.coverage.report]
-format = "markdown"
-fail_under = 50  # comment on fail_under
+format = "text"
+fail_under = 80
 show_missing = true
