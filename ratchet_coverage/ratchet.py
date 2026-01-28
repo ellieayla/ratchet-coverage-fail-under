@@ -11,6 +11,7 @@ from coverage import Coverage
 from argparse import ArgumentParser
 from os import getenv
 from pathlib import Path
+from io import StringIO
 
 
 def update_pyproject_toml(config_file: Path, expected_config_value: float, acceptable_coverage: float) -> None:
@@ -56,8 +57,8 @@ def main() -> int:
     c.load()
 
     # write a "total" report to get the percentage coverage as a float in the range 0-100
-    with open("/dev/null", 'w') as devnull:
-        total_coverage_percentage_reported_last = c.report(output_format="total", file=devnull)
+    devnull = StringIO()
+    total_coverage_percentage_reported_last = c.report(output_format="total", file=devnull)
 
     acceptable_coverage: float = round(a.threshold * total_coverage_percentage_reported_last, ndigits=0)
 
