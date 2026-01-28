@@ -124,7 +124,6 @@ def test_rewrite_pyproject_toml_file(tmp_path) -> None:
     assert cov.config.fail_under == 80.2
 
 
-
 def test_fail_to_rewrite_ini_config_file(tmp_path) -> None:
     ini_contents = textwrap.dedent(
         """
