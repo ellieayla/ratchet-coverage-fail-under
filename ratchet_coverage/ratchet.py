@@ -13,14 +13,11 @@ from os import getenv
 from pathlib import Path
 from io import StringIO
 
+import tomlkit
+import tomlkit.toml_file
 
 def update_pyproject_toml(config_file: Path, expected_config_value: float, acceptable_coverage: float) -> None:
-    try:
-        import tomlkit
-        import tomlkit.toml_file
-    except ImportError:
-        raise RuntimeError("To automatically update pyproject.toml, install tomlkit. See https://tomlkit.readthedocs.io/")
-
+    # model the relevant structure of pyproject.toml
     ConfChunkReport = TypedDict('ConfChunkReport', {'fail_under': float})
     ConfChunkCoverage = TypedDict('ConfChunkCoverage', {'report': ConfChunkReport})
     ConfChunkTool = TypedDict('ConfChunkTool', {'coverage': ConfChunkCoverage})
