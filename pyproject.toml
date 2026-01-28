@@ -1,6 +1,6 @@
 [project]
 name = "ratchet_coverage"
-version = "1.0.0"
+version = "1.0.1"
 description = "Ratchet up a coverage.py configuration's fail_under to prevent coverage regressions."
 readme = "README.md"
 requires-python = ">=3.10"
