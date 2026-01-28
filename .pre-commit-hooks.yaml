@@ -1,0 +1,6 @@
+- id: ratchet-coverage
+  language: python
+  name: rachet fail_under coverage requirement
+  entry: ratchet_coverage.py
+  pass_filenames: false
+  stages: [manual]

@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+
+
+"""
+Read a coverage.py output database (.coverage) as produced by either coverage.py or pytest-cov,
+and
+"""
+
+from typing import reveal_type, TypedDict, cast
+from coverage import CoverageData, Coverage
+from argparse import ArgumentParser, ArgumentError
+from os import getenv
+from pathlib import Path
+
+
+def update_pyproject_toml(config_file: Path, expected_config_value: float, acceptable_coverage: float) -> None:
+    try:
+        import tomlkit, tomlkit.toml_file
+    except ImportError:
+        raise RuntimeError("To automatically update pyproject.toml, install tomlkit. See https://tomlkit.readthedocs.io/")
+
+    ConfChunkReport = TypedDict('ConfChunkReport', {'fail_under': float})
+    ConfChunkCoverage = TypedDict('ConfChunkCoverage', {'report': ConfChunkReport})
+    ConfChunkTool = TypedDict('ConfChunkTool', {'coverage': ConfChunkCoverage})
+    ConfChunkDoc = TypedDict('ConfChunkDoc', {'tool': ConfChunkTool})
+
+    file = tomlkit.toml_file.TOMLFile(config_file)
+    doc: ConfChunkDoc = cast(ConfChunkDoc, file.read())
+
+    report_section = doc["tool"]["coverage"]["report"]
+    if float(report_section['fail_under']) != float(expected_config_value):
+        raise ValueError("Configured fail_under changed during run, aborting write.")
+
+    # set new value and write the file back
+    report_section['fail_under'] = acceptable_coverage
+    file.write(cast(tomlkit.TOMLDocument, doc))
+
+
+def percentage(argument: str) -> float:
+    f = float(argument.removesuffix('%')) / 100.0
+    if 0.0 <= f <= 1.0:
+        return f
+    raise ValueError("Percentage should be between 0-100")
+
+
+def main() -> int:
+    p = ArgumentParser()
+    p.add_argument("--data-file", metavar="INFILE", type=Path, default=getenv("COVERAGE_FILE", ".coverage"), help="path to .coverage sqlite database file (default %(default)s)")
+    p.add_argument("--cov-config", metavar="PATH", type=Path, default=".coveragerc", help="path to configuration file (default %(default)s)")
+    p.add_argument("--threshold", metavar="PCT", default="95%", type=percentage, help="Error if fail_under < threshold * last run report. 100%% fails on any discrepency (default %(default)s)")
+    p.add_argument("--write", action="store_true", help="Automatically write back to pyproject.toml. Useful in pre-commit hook.")
+    a = p.parse_args()
+
+    c = Coverage(data_file=a.data_file, config_file=a.cov_config)
+    c.load()
+
+    # write a "total" report to get the percentage coverage as a float in the range 0-100
+    with open("/dev/null", 'w') as devnull:
+        total_coverage_percentage_reported_last = c.report(output_format="total", file=devnull)
+
+    acceptable_coverage: float = round(a.threshold * total_coverage_percentage_reported_last, ndigits=0)
+
+    if c.config.fail_under == 100.0:
+        print("fail_under cannot be ratcheted higher than 100%, this hook can be disabled!")
+        return 0
+
+    if c.config.fail_under >= acceptable_coverage:
+        print(f"OK: last coverage run reported {total_coverage_percentage_reported_last:.0f}%, within {a.threshold:.0%} of fail_under={c.config.fail_under:.0f}%")
+        return 0
+
+    print(f"Last coverage run reported {total_coverage_percentage_reported_last:.0f}% covered, but coverage is configured to require only {c.config.fail_under:.0f}%: Set at least fail_under={acceptable_coverage:.0f} in {c.config.config_file}")
+
+    if a.write:
+        update_pyproject_toml(Path(cast(str, c.config.config_file)), c.config.fail_under, acceptable_coverage)
+
+    return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
