@@ -8,8 +8,8 @@ and
 
 from typing import TypedDict, cast
 from coverage import Coverage
+from coverage.control import DEFAULT_DATAFILE
 from argparse import ArgumentParser
-from os import getenv
 from pathlib import Path
 from io import StringIO
 
@@ -30,6 +30,9 @@ def update_pyproject_toml(config_file: Path, expected_config_value: float, accep
     if float(report_section['fail_under']) != float(expected_config_value):
         raise ValueError("Configured fail_under changed during run, aborting write.")
 
+    if expected_config_value > acceptable_coverage:
+        raise ValueError(f"Refusing to reduce fail_under ({expected_config_value} > {acceptable_coverage})")
+
     # set new value and write the file back
     report_section['fail_under'] = acceptable_coverage
     file.write(cast(tomlkit.TOMLDocument, doc))
@@ -44,13 +47,13 @@ def percentage(argument: str) -> float:
 
 def main() -> int:
     p = ArgumentParser()
-    p.add_argument("--data-file", metavar="INFILE", type=Path, default=getenv("COVERAGE_FILE", ".coverage"), help="path to .coverage sqlite database file (default %(default)s)")
-    p.add_argument("--cov-config", metavar="PATH", type=Path, default=".coveragerc", help="path to configuration file (default %(default)s)")
+    p.add_argument("--data-file", metavar="INFILE", type=Path, default=None, help="path to .coverage sqlite database file (default read from config)")
+    p.add_argument("--cov-config", metavar="PATH", type=Path, default=True, help="path to configuration file (ref https://coverage.readthedocs.io/en/latest/config.html)")
     p.add_argument("--threshold", metavar="PCT", default="95%", type=percentage, help="Error if fail_under < threshold * last run report. 100%% fails on any discrepency (default %(default)s)")
     p.add_argument("--write", action="store_true", help="Automatically write back to pyproject.toml. Useful in pre-commit hook.")
     a = p.parse_args()
 
-    c = Coverage(data_file=a.data_file, config_file=a.cov_config)
+    c = Coverage(data_file=a.data_file or DEFAULT_DATAFILE, config_file=a.cov_config)
     c.load()
 
     # write a "total" report to get the percentage coverage as a float in the range 0-100

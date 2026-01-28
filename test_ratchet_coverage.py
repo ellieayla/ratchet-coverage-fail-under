@@ -280,3 +280,11 @@ def test_unexpected_fail_under_configuration(tmp_path, capsys):
     with pytest.raises(ValueError) as e:
         ratchet.update_pyproject_toml(toml_config_file, expected_config_value=1, acceptable_coverage=2)
     assert 'fail_under changed during run' in str(e)
+
+
+def test_refuse_to_reduce_fail_under(tmp_path):
+    toml_config_file = make_toml_config_file(tmp_path=tmp_path, fail_under=99.0)
+
+    with pytest.raises(ValueError) as e:
+        ratchet.update_pyproject_toml(toml_config_file, expected_config_value=99.0, acceptable_coverage=2)
+    assert 'Refusing to reduce fail_under' in str(e)
