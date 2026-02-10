@@ -2,6 +2,7 @@
 
 if [ $# -ne 1 ]; then
     echo "Usage: $0 1.2.3"
+    echo " - current: $(grep ^version pyproject.toml)"
     exit 1
 fi
 
@@ -19,13 +20,20 @@ echo "Setting version to $VERSION"
 
 set -e
 
-if git diff-index --quiet --cached HEAD --; then
-    echo "Staged (uncommitted) changes"
-    #exit 2
+git add pyproject.toml README.md uv.lock release.sh
+
+if ! git diff-index --quiet --cached HEAD --; then
+    echo "Staged (uncommitted) changes will be included in commit"
 fi
 
-if git diff-files --quiet; then
+if ! git diff --stat --exit-code; then
     echo "Unstaged changes (dirty working directory)"
+    exit 2
+fi
+
+if [ ! -z "$(git ls-files --others --exclude-standard)" ]; then
+    echo "Untracked files"
+    git ls-files --others --exclude-standard
     exit 2
 fi
 
