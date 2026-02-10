@@ -334,8 +334,8 @@ wheels = [
 
 [[package]]
 name = "ratchet-coverage"
-version = "1.0.1"
-source = { virtual = "." }
+version = "1.0.2"
+source = { editable = "." }
 dependencies = [
     { name = "coverage" },
     { name = "tomlkit" },

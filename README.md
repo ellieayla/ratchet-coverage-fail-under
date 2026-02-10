@@ -25,7 +25,7 @@ If `fail_under` ever reaches 100%, this hook becomes a no-op and can be safely r
 # .pre-commit-config.yaml
 
 - repo: https://github.com/ellieayla/ratchet-coverage-fail-under
-  rev: v1.0.1
+  rev: v1.0.2
   hooks:
     - id: ratchet-coverage
       #args: [--write]  # whether to automatically write pyproject.toml

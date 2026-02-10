@@ -29,10 +29,10 @@ if git diff-files --quiet; then
     exit 2
 fi
 
-sed -i '' "s/version = \"[0-9\.]+\"/version = \"$VERSION\"/" pyproject.toml
-sed -i '' "s/rev: v[0-9\.]+/rev: $TAG/" README.md
-uv sync
+sed -i '' "s/version = \"[0-9\.]*\"/version = \"$VERSION\"/" pyproject.toml
+sed -i '' "s/rev: v[0-9\.]*/rev: $TAG/" README.md
 
+uv sync
 git add pyproject.toml README.md uv.lock
 
 git commit -m "Bump version to $TAG"

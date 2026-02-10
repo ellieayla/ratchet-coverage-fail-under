@@ -2,8 +2,8 @@
 
 
 """
-Read a coverage.py output database (.coverage) as produced by either coverage.py or pytest-cov,
-and
+Read a recent coverage.py output database (.coverage) from coverage.py or pytest-cov,
+and ratchet up the pyproject.toml configuration [tool.coverage.report] fail_under value.
 """
 
 from typing import TypedDict, cast
