@@ -1,0 +1,20 @@
+name: 'Ratchet coverage'
+description: 'Ensure fail_under keeps going up.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        activate-environment: false
+
+    - name: Install Ratchet
+      run: uv tool install "$GITHUB_ACTION_PATH"
+      shell: bash
+      env:
+        GITHUB_ACTION_PATH: ${{ github.action_path }}
+
+    - name: Ratchet
+      run: ratchet-coverage
+      shell: bash
